@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -21,7 +22,7 @@ namespace Glumboi.Debug
         /// so the function fails if the calling process already has a console.
         /// </remarks>
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern int AllocConsole();
+        private static extern int AllocConsole();
 
         // http://msdn.microsoft.com/en-us/library/ms683150(VS.85).aspx
         /// <summary>
@@ -35,16 +36,18 @@ namespace Glumboi.Debug
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern int FreeConsole();
 
-        int _logLvl = (int)Levels.LogLevelTrace;
+        private static readonly StringBuilder LogString = new StringBuilder();
 
-        enum Levels
+        private int _logLvl = (int)Levels.LogLevelTrace;
+
+        private enum Levels
         {
             LogLevelError = 0,
             LogLevelWarning = 1,
             LogLevelTrace = 2
         }
 
-        public DebugConsole(int lvl, string consoleTitle, bool debugMode, bool catchExceptions)
+        public DebugConsole(int lvl = 2, string consoleTitle = "Console", bool debugMode = true, bool catchExceptions = false)
         {
             if (!debugMode) return;
             AllocConsole();
@@ -54,46 +57,40 @@ namespace Glumboi.Debug
         }
 
         public void ChangeLevel(int lvl) => _logLvl = lvl;
-
+        
         public void Info(string message)
         {
-            if (_logLvl >= (int)Levels.LogLevelTrace)
-            {
-                Console.ForegroundColor = ConsoleColor.Blue;
-                Console.Write("\n[INFO]: ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(message);
-            }
+            if (_logLvl < (int)Levels.LogLevelTrace) return;
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Write("\n[INFO]: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Write(message);
         }
 
         public void Warn(string message)
         {
-            if (_logLvl >= (int)Levels.LogLevelWarning)
-            {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("\n[WARNING]: ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(message);
-            }
+            if (_logLvl < (int)Levels.LogLevelWarning) return;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Write("\n[WARNING]: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Write(message);
         }
 
         public void Error(string message)
         {
-            if (_logLvl >= (int)Levels.LogLevelError)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write("\n[ERROR]: ");
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write(message);
-            }
+            if (_logLvl < (int)Levels.LogLevelError) return;
+            Console.ForegroundColor = ConsoleColor.Red;
+            Write("\n[ERROR]: ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Write(message);
         }
 
         private void Init(string consoleTitle, bool catchExceptions)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.Write("\n[Initializing console...]: ");
+            Write("\n[Initializing console...]: ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.Write($"Logging level: {_logLvl}");
+            Write($"Logging level: {_logLvl}\n");
             if (catchExceptions) CatchAllExceptions();
         }
 
@@ -101,6 +98,41 @@ namespace Glumboi.Debug
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
+        }
+
+        public static void WriteLine(string str)
+        {
+            Console.WriteLine(str);
+            LogString.Append(str).Append(Environment.NewLine);
+        }
+
+        public static void Write(string str)
+        {
+            Console.Write(str);
+            LogString.Append(str);
+        }
+
+        public void SaveLog(bool Append = false, string Path = "./Log.txt")
+        {
+            if (LogString == null || LogString.Length <= 0) return;
+            if (Append)
+            {
+                using (StreamWriter file = System.IO.File.AppendText(Path))
+                {
+                    file.Write(LogString.ToString());
+                    file.Close();
+                    file.Dispose();
+                }
+            }
+            else
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(Path))
+                {
+                    file.Write(LogString.ToString());
+                    file.Close();
+                    file.Dispose();
+                }
+            }
         }
 
         private void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
