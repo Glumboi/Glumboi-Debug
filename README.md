@@ -14,7 +14,7 @@ You can also just use:
 This will create a new debug console with the default params.
 I personally implement this console in my Program.cs becasuse it contains the entry point of my programs.
 
-After creatino you can write to it like so:
+After creatin you can write to it like so:
        
     Program.debugconsole.Info("Hello World!");
     Program.debugconsole.Warn("Warning!");
