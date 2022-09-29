@@ -13,3 +13,19 @@ You can also just use:
 
 This will create a new debug console with the default params.
 I personally implement this console in my Program.cs becasuse it contains the entry point of my programs.
+
+After creatino you can write to it like so:
+       
+    Program.debugconsole.Info("Hello World!");
+    Program.debugconsole.Warn("Warning!");
+    Program.debugconsole.Error("Error!");
+    
+You can also change the message logging level like so: 
+                                       
+                                     an integer bewteen 0 and 2 (0 = error level, 1 = warning level, 2 = trace level)
+    Program.debugconsole.ChangeLevel(↑);
+    
+I also use it often to get what it wrote to the console and save it in a text file, you can do it like so:
+    
+                                 bool : Append
+    Program.debugconsole.SaveLog(↑, "./Log.txt");
