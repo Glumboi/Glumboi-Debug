@@ -16,16 +16,16 @@ I personally implement this console in my Program.cs becasuse it contains the en
 
 After creatin you can write to it like so:
        
-    Program.debugconsole.Info("Hello World!");
-    Program.debugconsole.Warn("Warning!");
-    Program.debugconsole.Error("Error!");
+    Program.debugConsole.Info("Hello World!");
+    Program.debugConsole.Warn("Warning!");
+    Program.debugConsole.Error("Error!");
     
 You can also change the message logging level like so: 
                                        
                                      an integer bewteen 0 and 2 (0 = error level, 1 = warning level, 2 = trace level)
-    Program.debugconsole.ChangeLevel(↑);
+    Program.debugConsole.ChangeLevel(↑);
     
 I also use it often to get what it wrote to the console and save it in a text file, you can do it like so:
     
                                  bool : Append
-    Program.debugconsole.SaveLog(↑, "./Log.txt");
+    Program.debugConsole.SaveLog(↑, "./Log.txt");
